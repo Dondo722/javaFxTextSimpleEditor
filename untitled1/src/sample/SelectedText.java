@@ -43,6 +43,22 @@ public class SelectedText  {
         node.setStyle("-fx-font: 20 Times_New_Roman;");
         nodes.remove(node);
     }
+    public void remove(int from, int to){
+        for (int i = from; i < to; i++){
+            remove(nodes.get(i));
+            to--;
+        }
+    }
+    public void remove(Node from, Node to){
+        if(from == to) return;
+        int fromId = nodes.indexOf(from);
+        int toId = nodes.indexOf(to);
+        while (fromId <= toId){
+            remove(nodes.get(fromId));
+            toId--;
+        }
+    }
+
     public void removeAll(){
         while (!nodes.isEmpty()) {
             nodes.get(0).setStyle("-fx-font: 20 Times_New_Roman;");
@@ -54,29 +70,30 @@ public class SelectedText  {
 
     public void select(Node node){
         if(!nodes.contains(node) && node != Caret.caretNode(textflow)){
-            add(node);
             if (firstNode != null) {
                 secondNode = node;
                 checkOther();
             }
-            else firstNode = node;
+            else {
+                add(node);
+                firstNode = node;
+            }
         }
         else if(nodes.contains(node) && node != Caret.caretNode(textflow) && node != firstNode){
             chopEnds(node);
         }
     }
 //change this shit
-    public void addOtherRight(int firstNodeFlowIndex, int nodeDifference){
-        while (nodeDifference != 0){
-            nodeDifference++;
-            firstNodeFlowIndex++;
-            add(textflow.getChildren().get(firstNodeFlowIndex));
+    public void addOtherRight(int firstToSecondNodeFlowIndex, int secondNodeFlowIndex){
+        //nodes.remove(secondNode);
+        for (int i = firstToSecondNodeFlowIndex; i <= secondNodeFlowIndex; i++) {
+            add(textflow.getChildren().get(i));
         }
     }
 
     public void addOtherLeft(int firstNodeFlowIndex, int secondNodeFlowIndex)
     {
-        nodes.remove(secondNode);
+        //nodes.remove(secondNode);
         int nodesId = 0;
         for (int i = secondNodeFlowIndex; i < firstNodeFlowIndex; i++){
             add(nodesId,textflow.getChildren().get(i));
@@ -88,13 +105,23 @@ public class SelectedText  {
         int firstNodeFlowIndex = textflow.getChildren().indexOf(firstNode);
         int secondNodeFlowIndex = textflow.getChildren().indexOf(secondNode);
 
-        int nodeDifference = firstNodeFlowIndex - secondNodeFlowIndex;
-        //SECOND NODE IS MORE
-        if (nodeDifference < 0 ){
-            addOtherRight(firstNodeFlowIndex,nodeDifference);
+        if (firstNodeFlowIndex < secondNodeFlowIndex ){
+            int firstToSecondNodeFlowIndex = textflow.getChildren().indexOf(nodes.get(nodes.size()-1));
+            addOtherRight(firstToSecondNodeFlowIndex,secondNodeFlowIndex);
+            if(firstNode != nodes.get(0)){
+                Node nodeFirstLeft = nodes.get(nodes.indexOf(firstNode) -1); // First node that left before firstNode
+                remove(nodes.get(0),nodeFirstLeft);
+            }
         }
-        else {
+        else if (firstNodeFlowIndex > secondNodeFlowIndex){
             addOtherLeft(firstNodeFlowIndex,secondNodeFlowIndex);
+
+            if (firstNode != nodes.get(nodes.size()-1))
+            {
+                Node nodeFirstRight = nodes.get(nodes.indexOf(firstNode) + 1); // First node that right after firstNode
+                remove(nodeFirstRight,nodes.get(nodes.size()-1));
+            }
+
         }
     }
 
@@ -130,7 +157,7 @@ public class SelectedText  {
             chopLeft(node);
         }
         else if (isBelongs(firstNode,node,nodes.get(nodes.size()-1))){
-            //chopRight(node);
+            chopRight(node);
         }
     }
 }
