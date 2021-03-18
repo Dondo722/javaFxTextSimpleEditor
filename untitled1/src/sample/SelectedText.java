@@ -1,15 +1,13 @@
 package sample;
 
 
-import javafx.beans.Observable;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.Camera;
 import javafx.scene.Node;
 import javafx.scene.text.TextFlow;
 
-import javax.swing.*;
-import java.util.List;
+
 
 public class SelectedText  {
     TextFlow textflow;
@@ -26,6 +24,21 @@ public class SelectedText  {
         this.selectable = selectable;
         if(!selectable) removeAll();
     }
+    public void select(Node node){
+        if(!nodes.contains(node) && node != Caret.caretNode(textflow)){
+            if (firstNode != null) {
+                secondNode = node;
+                checkOther();
+            }
+            else {
+                add(node);
+                firstNode = node;
+            }
+        }
+        else if(nodes.contains(node) && node != Caret.caretNode(textflow)){
+            chopEnds(node);
+        }
+    }
 
 
     public void add(Node node){
@@ -38,16 +51,11 @@ public class SelectedText  {
         node.setStyle("-fx-font: 20 Times_New_Roman; -fx-fill: purple");
         nodes.add(i,node);
     }
+
     public void remove(Node node){
         if (!nodes.contains(node))return;
         node.setStyle("-fx-font: 20 Times_New_Roman;");
         nodes.remove(node);
-    }
-    public void remove(int from, int to){
-        for (int i = from; i < to; i++){
-            remove(nodes.get(i));
-            to--;
-        }
     }
     public void remove(Node from, Node to){
         if(from == to) return;
@@ -58,7 +66,6 @@ public class SelectedText  {
             toId--;
         }
     }
-
     public void removeAll(){
         while (!nodes.isEmpty()) {
             nodes.get(0).setStyle("-fx-font: 20 Times_New_Roman;");
@@ -68,22 +75,6 @@ public class SelectedText  {
         secondNode = null;
     }
 
-    public void select(Node node){
-        if(!nodes.contains(node) && node != Caret.caretNode(textflow)){
-            if (firstNode != null) {
-                secondNode = node;
-                checkOther();
-            }
-            else {
-                add(node);
-                firstNode = node;
-            }
-        }
-        else if(nodes.contains(node) && node != Caret.caretNode(textflow) && node != firstNode){
-            chopEnds(node);
-        }
-    }
-//change this shit
     public void addOtherRight(int firstToSecondNodeFlowIndex, int secondNodeFlowIndex){
         //nodes.remove(secondNode);
         for (int i = firstToSecondNodeFlowIndex; i <= secondNodeFlowIndex; i++) {
@@ -109,8 +100,9 @@ public class SelectedText  {
             int firstToSecondNodeFlowIndex = textflow.getChildren().indexOf(nodes.get(nodes.size()-1));
             addOtherRight(firstToSecondNodeFlowIndex,secondNodeFlowIndex);
             if(firstNode != nodes.get(0)){
-                Node nodeFirstLeft = nodes.get(nodes.indexOf(firstNode) -1); // First node that left before firstNode
-                remove(nodes.get(0),nodeFirstLeft);
+                Node nodeFirstLeft = nodes.get(nodes.indexOf(firstNode) - 1); // First node that left before firstNode
+                if(nodes.get(0) == nodeFirstLeft) remove(nodeFirstLeft);
+                else remove(nodes.get(0),nodeFirstLeft);
             }
         }
         else if (firstNodeFlowIndex > secondNodeFlowIndex){
@@ -119,7 +111,8 @@ public class SelectedText  {
             if (firstNode != nodes.get(nodes.size()-1))
             {
                 Node nodeFirstRight = nodes.get(nodes.indexOf(firstNode) + 1); // First node that right after firstNode
-                remove(nodeFirstRight,nodes.get(nodes.size()-1));
+                if (nodes.get(nodes.size()-1) == nodeFirstRight) remove(nodeFirstRight);
+                else remove(nodeFirstRight,nodes.get(nodes.size()-1));
             }
 
         }
@@ -131,33 +124,32 @@ public class SelectedText  {
     }
 
 
+
+    //change chops in future
+
     public void chopRight(Node node){
-        int nodeIndex = nodes.indexOf(node);
-        int size = nodes.size();
-        for (int i = nodeIndex + 1; i < size; i++){
-            remove(nodes.get(i));
-            size = nodes.size();
-        }
+        Node tempNode = nodes.get(nodes.indexOf(node) + 1); // first index left after node
+        remove(tempNode,nodes.get(nodes.size()-1));
+
     }
 
 
     public void chopLeft(Node node){
-    int nodeIndex = nodes.indexOf(node);
-        for (int i = 0; i < nodeIndex; i++){
-        remove(nodes.get(i));
-        nodeIndex = nodes.indexOf(node);
-    }
-}
+        Node tempNode = nodes.get(nodes.indexOf(node) - 1); // first index right before node
+        remove(nodes.get(0), tempNode);
 
+    }
 
 
     public void chopEnds(Node node){
 
-        if (isBelongs(nodes.get(0),node,firstNode)){
-            chopLeft(node);
-        }
-        else if (isBelongs(firstNode,node,nodes.get(nodes.size()-1))){
-            chopRight(node);
+        if(node != nodes.get(0) && node != nodes.get(nodes.size()-1)){
+            if (isBelongs(nodes.get(0),node,firstNode)){
+                chopLeft(node);
+            }
+            else if (isBelongs(firstNode,node,nodes.get(nodes.size()-1))){
+                chopRight(node);
+            }
         }
     }
 }
