@@ -53,11 +53,13 @@ public class Main extends Application {
     VBox vBox = new VBox();
     String style ;
     HBox hBox = new HBox();
-    TextFlow textFlow = new TextFlow(Caret.getTextCaret());
+    Caret caret = new Caret();
+    TextFlow textFlow = new TextFlow(caret.getTextCaret());
     Button buttonFile;
     Button buttonFile2;
     Button buttonCopy;
     Button buttonPaste;
+    Button buttonShow;
 
     ScrollPane scrollPane = new ScrollPane(){ public void requestFocus(){}};
 
@@ -70,7 +72,7 @@ public class Main extends Application {
     double lastY = -1;
 
     boolean selectability = false;
-    SelectedText selectedText = new SelectedText(textFlow);
+    SelectedText selectedText = new SelectedText(textFlow,caret);
 
     public static void main(String[] args)
     {
@@ -82,6 +84,23 @@ public class Main extends Application {
 
         style = " -fx-font: " + styleInt + " Times_New_Roman;";
         //textFlow.setLineSpacing(5);
+
+        //TextFlow Text settings
+
+
+
+
+
+        buttonShow = new Button("show"){ public void requestFocus(){}};
+        buttonShow.setOnAction((e)->{
+            for (int i = 0; i < textFlow.getChildren().size();i++){
+                System.out.println(nodeToString(textFlow.getChildren().get(i)));
+                if (nodeToString(textFlow.getChildren().get(i)).equals("\n"))
+                    System.out.println("NNNNNNNNNNNNNNNNNNNNNNNN");
+            }
+
+        });
+
 
 
         buttonFile = new Button(" coordinates "){ public void requestFocus(){}};//creating button & override it's focus off
@@ -106,11 +125,11 @@ public class Main extends Application {
         buttonFile2 = new Button(" Size + Caret ");
         buttonFile2.setFocusTraversable(false);//set focus off
         buttonFile2.setOnAction((e)-> {
-            System.out.println("Caret: " + Caret.caretIndex(textFlow));
+            System.out.println("Caret: " + caret.caretIndex(textFlow));
             System.out.println("Size: " + textFlow.getChildren().size());
 
         });
-        hBox.getChildren().addAll(buttonFile,buttonFile2,buttonCopy,buttonPaste);
+        hBox.getChildren().addAll(buttonFile,buttonFile2,buttonCopy,buttonPaste,buttonShow);
 
         scrollPane.setContent(textFlow);
         root.setCenter(scrollPane);
@@ -199,21 +218,17 @@ public class Main extends Application {
         else if(keyEvent.getCode() == KeyCode.LEFT) leftKey();
         else if (keyEvent.getCode() == KeyCode.UP) upKey();
         else if (keyEvent.getCode() == KeyCode.DOWN) downKey();
+        else if (keyEvent.getCode() == KeyCode.ENTER) addToTextFlow("\n");
         else if (keyEvent.getCode() == KeyCode.CAPS) return;
         else if (keyEvent.getCode() == KeyCode.CONTROL) return;
         else if (keyEvent.getCode() == KeyCode.SHIFT) return;
-        else {
-            Text text = new Text(keyEvent.getText());
-            text.setStyle(style);
-            text.setBoundsType(TextBoundsType.VISUAL);
-            insert(text);
+        else addToTextFlow(keyEvent.getText());
 
-        }
     }
 
     public void rightKey()
     {
-        int caretIndex  = Caret.caretIndex(textFlow);
+        int caretIndex  = caret.caretIndex(textFlow);
         if (caretIndex != textFlow.getChildren().size() - 1) {
             Node caretNode = textFlow.getChildren().get(caretIndex);
             mouseCaretControl(caretNode, caretIndex, caretIndex + 1);
@@ -221,51 +236,12 @@ public class Main extends Application {
     }
     public void leftKey()
     {
-        int caretIndex = Caret.caretIndex(textFlow);
+        int caretIndex = caret.caretIndex(textFlow);
         if (caretIndex > 0) {
             Node caret = textFlow.getChildren().get(caretIndex);
             method(caretIndex - 1, caret);
         }
     }
-    public void upKey(){
-
-      double caretMaxX = Caret.caretNode(textFlow).getBoundsInParent().getMaxX();
-      double caretMaxY = Caret.caretNode(textFlow).getBoundsInParent().getMaxY();
-      double nodeHeight = Caret.caretNode(textFlow).getBoundsInParent().getHeight();
-      double caretYNew = caretMaxY - nodeHeight;
-      upKeyGear(caretMaxX,caretMaxY,caretYNew);
-
-    }
-    public void downKey(){
-        double caretMaxX = Caret.caretNode(textFlow).getBoundsInParent().getMaxX();
-        double caretMaxY = Caret.caretNode(textFlow).getBoundsInParent().getMaxY();
-        double nodeHeight = Caret.caretNode(textFlow).getBoundsInParent().getHeight();
-        double caretYNew = caretMaxY + nodeHeight;
-        mouseCaretControl(Caret.caretNode(textFlow),Caret.caretIndex(textFlow),textFlow.getChildren().indexOf(getNodeByCoordinates(caretMaxX,caretMaxY,caretYNew)));
-    }
-    public void upKeyGear(double nodeX, double nodeY, double nodeYNew){
-        Node node = getNodeByCoordinates(nodeX,nodeY,nodeYNew);
-        Node caretNode = textFlow.getChildren().get(Caret.caretIndex(textFlow));
-//        if (node == caretNode)
-//        {
-//            node = firstEnterBefore(textFlow.getChildren().indexOf(caretNode));
-//        }
-        method(textFlow.getChildren().indexOf(node),caretNode);
-    }
-
-//    public Node firstEnterBefore(int nodeIndex){
-//        Text enterText = new Text("1");
-//        Text text;
-//        Node enterNode = enterText;
-//        for (int i = nodeIndex; i >= 0; i--){
-//            //if(textFlow.getChildren().get(i).getAccessibleText()) {
-//                System.out.println(i + ": " + textFlow.getChildren().get(i));
-//                //return textFlow.getChildren().get(i);
-//            //}
-//        }
-//        return null;
-//    }
-
 
     public Node getNodeByCoordinates(double nodeX, double nodeY, double nodeYNew){
         Bounds bounds;
@@ -276,22 +252,96 @@ public class Main extends Application {
             }
         }
         else if(nodeY < nodeYNew){
-            for (int i = Caret.caretIndex(textFlow); i < textFlow.getChildren().size() ; i++){
+            for (int i = caret.caretIndex(textFlow); i < textFlow.getChildren().size() ; i++){
                 bounds = textFlow.getChildren().get(i).getBoundsInParent();
-                if (inBounds(nodeX,nodeYNew, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(),bounds.getMaxY()))return textFlow.getChildren().get(i);
+                if (inBounds(nodeX,nodeYNew, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(),bounds.getMaxY())){
+//                    System.out.println("nodeX " + nodeX);
+//                    System.out.println("nodeYNew" + nodeYNew);
+//                    System.out.println("bounds.getMinX()" + bounds.getMinX());
+//                    System.out.println("bounds.getMaxX()" + bounds.getMaxX());
+//                    System.out.println("bounds.getMinY()" + bounds.getMinY());
+//                    System.out.println("bounds.getMaxY()" + bounds.getMaxY());
+                    return textFlow.getChildren().get(i);
+                }
             }
         }
         return null;
     }
 
+
+
+    public void upKey(){
+      double caretMaxX = caret.caretNode(textFlow).getBoundsInParent().getMaxX();
+      double caretMaxY = caret.caretNode(textFlow).getBoundsInParent().getMaxY();
+      double nodeHeight = caret.caretNode(textFlow).getBoundsInParent().getHeight();
+      double caretYNew = caretMaxY - nodeHeight;
+      upKeyGear(caretMaxX,caretMaxY,caretYNew);
+    }
+    public void upKeyGear(double nodeX, double nodeY, double nodeYNew){
+        Node node = getNodeByCoordinates(nodeX,nodeY,nodeYNew);
+        Node caretNode = textFlow.getChildren().get(caret.caretIndex(textFlow));
+        if (node == null)
+        {
+            node = firstEnterBefore(textFlow.getChildren().indexOf(caretNode));
+            if (node == null)return;
+        }
+        method(textFlow.getChildren().indexOf(node),caretNode);
+    }
+    public Node firstEnterBefore(int nodeIndex){
+        for (int i = nodeIndex; i >= 0; i--){
+            if (nodeToString(textFlow.getChildren().get(i)).equals("\n")) return textFlow.getChildren().get(i);
+        }
+        return null;
+    }
+
+
+    public void downKey(){
+        double caretMaxX = caret.caretNode(textFlow).getBoundsInParent().getMaxX();
+        double caretMaxY = caret.caretNode(textFlow).getBoundsInParent().getMaxY();
+        double nodeHeight = caret.caretNode(textFlow).getBoundsInParent().getHeight();
+        double caretYNew = caretMaxY + nodeHeight;
+        downKeyGear(caretMaxX,caretMaxY,caretYNew);
+    }
+    public void downKeyGear(double nodeX, double nodeY, double nodeYNew){
+        Node node = getNodeByCoordinates(nodeX,nodeY,nodeYNew);
+        System.out.println(node);
+        Node caretNode = textFlow.getChildren().get(caret.caretIndex(textFlow));
+        if (node == null)
+        {
+            node = secondEnterAfter(textFlow.getChildren().indexOf(caretNode));
+            if (node == null)return;
+        }
+        int futureIndex = textFlow.getChildren().indexOf(node);
+        if (node != textFlow.getChildren().get(textFlow.getChildren().size()-1))
+            futureIndex -= 1;
+
+            mouseCaretControl(caretNode,caret.caretIndex(textFlow),futureIndex);
+    }
+    public Node secondEnterAfter(int nodeIndex){
+        int count = 0;
+        for (int i = nodeIndex; i < textFlow.getChildren().size(); i++){
+
+            if (nodeToString(textFlow.getChildren().get(i)).equals("\n")) {
+                System.out.println(count + "     ");
+                if(count == 1) return textFlow.getChildren().get(i);
+                else count++;
+            }
+            if(i == textFlow.getChildren().size() - 1 && count == 1) return textFlow.getChildren().get(i);
+        }
+        return null;
+    }
+
+
+
+
     public boolean inBounds(double nodeX, double nodeY, double boundsMinX, double boundsMaxX, double boundsMinY, double boundsMaxY){
-        return boundsMinX <= nodeX && boundsMaxX >= nodeX && boundsMinY <= nodeY && boundsMaxY >= nodeY;
+        return boundsMinX <= nodeX && boundsMaxX >= nodeX && boundsMinY < nodeY && boundsMaxY >= nodeY;
     }
 
 
     public void insert(Text text){
         text.setStyle(style);
-        int caretIndex = Caret.caretIndex(textFlow);
+        int caretIndex = caret.caretIndex(textFlow);
         Node caret = textFlow.getChildren().get(caretIndex);
         textFlow.getChildren().set(caretIndex,text);
         method(caretIndex + 1 , caret);
@@ -307,7 +357,6 @@ public class Main extends Application {
         while (!tempTextFlow.getChildren().isEmpty()){
             textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
         }
-
     }
 
 
@@ -315,7 +364,7 @@ public class Main extends Application {
     {
         Node chosenNode = mouseEvent.getPickResult().getIntersectedNode();
         int chosenNodeIndex = textFlow.getChildren().indexOf(chosenNode);
-        int caretIndex  = Caret.caretIndex(textFlow);
+        int caretIndex  = caret.caretIndex(textFlow);
         Node caretNode = textFlow.getChildren().get(caretIndex);
 
         if (caretIndex < chosenNodeIndex) {
@@ -363,6 +412,23 @@ public class Main extends Application {
 
     }
 
+    public void addToTextFlow(String string){
+        Text text = new Text(string);
+        text.setStyle(style);
+        text.setBoundsType(TextBoundsType.VISUAL);
+        insert(text);
+    }
+
+
+
+
+    public String nodeToString(Node node){
+        String nodeDate = node.toString();
+        int startIndex = nodeDate.indexOf('"');
+        int endIndex = nodeDate.lastIndexOf('"');
+
+        return nodeDate.substring(startIndex + 1,endIndex);
+    }
 
 
 }

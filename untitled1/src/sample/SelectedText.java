@@ -11,21 +11,23 @@ import javafx.scene.text.TextFlow;
 
 public class SelectedText  {
     TextFlow textflow;
+    Node caretNode;
     Node firstNode = null;
     Node secondNode = null;
     boolean selectable = false;
     public final ObservableList<Node> nodes = FXCollections.observableArrayList();
 
 
-    SelectedText(TextFlow textFlow){
+    SelectedText(TextFlow textFlow, Caret caret){
         this.textflow = textFlow;
+        caretNode = caret.caretNode(textFlow);
     }
     public void setSelectable(boolean selectable){
         this.selectable = selectable;
         if(!selectable) removeAll();
     }
     public void select(Node node){
-        if(!nodes.contains(node) && node != Caret.caretNode(textflow)){
+        if(!nodes.contains(node) && node != caretNode){
             if (firstNode != null) {
                 secondNode = node;
                 checkOther();
@@ -35,19 +37,19 @@ public class SelectedText  {
                 firstNode = node;
             }
         }
-        else if(nodes.contains(node) && node != Caret.caretNode(textflow)){
+        else if(nodes.contains(node) && node != caretNode){
             chopEnds(node);
         }
     }
 
 
     public void add(Node node){
-        if (nodes.contains(node) || node == Caret.caretNode(textflow))return;
+        if (nodes.contains(node) || node == caretNode)return;
         node.setStyle("-fx-font: 20 Times_New_Roman; -fx-fill: purple");
         nodes.add(node);
     }
     public void add(int i,Node node){
-        if (nodes.contains(node) || node == Caret.caretNode(textflow))return;
+        if (nodes.contains(node) || node == caretNode)return;
         node.setStyle("-fx-font: 20 Times_New_Roman; -fx-fill: purple");
         nodes.add(i,node);
     }
