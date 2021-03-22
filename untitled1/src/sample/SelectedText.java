@@ -3,10 +3,10 @@ package sample;
 
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.text.TextFlow;
 
+import java.util.List;
 
 
 public class SelectedText  {
@@ -15,7 +15,7 @@ public class SelectedText  {
     Node firstNode = null;
     Node secondNode = null;
     boolean selectable = false;
-    public final ObservableList<Node> nodes = FXCollections.observableArrayList();
+    public final List<Node> nodes = FXCollections.observableArrayList();
 
 
     SelectedText(TextFlow textFlow, Caret caret){
@@ -37,8 +37,9 @@ public class SelectedText  {
                 firstNode = node;
             }
         }
-        else if(nodes.contains(node) && node != caretNode){
+        else if(nodes.contains(node) && node != caretNode ){
             chopEnds(node);
+            chopNear(node);
         }
     }
 
@@ -64,6 +65,7 @@ public class SelectedText  {
         int fromId = nodes.indexOf(from);
         int toId = nodes.indexOf(to);
         while (fromId <= toId){
+            if(nodes.get(fromId) != firstNode)
             remove(nodes.get(fromId));
             toId--;
         }
@@ -130,22 +132,26 @@ public class SelectedText  {
     //change chops in future
 
     public void chopRight(Node node){
-        Node tempNode = nodes.get(nodes.indexOf(node) + 1); // first index left after node
-        remove(tempNode,nodes.get(nodes.size()-1));
+//        Node tempNode;
+//        if(node != nodes.get(nodes.size() - 1)) tempNode = nodes.get(nodes.indexOf(node) + 1); // first index left after node
+//        else tempNode = node;
+        remove(node,nodes.get(nodes.size()-1));
 
     }
 
 
     public void chopLeft(Node node){
-        Node tempNode = nodes.get(nodes.indexOf(node) - 1); // first index right before node
-        remove(nodes.get(0), tempNode);
+//        Node tempNode;
+//        if (node != nodes.get(0)) tempNode = nodes.get(nodes.indexOf(node) - 1); // first index right before node
+//        else tempNode = node;
+        remove(nodes.get(0), node);
 
     }
 
 
     public void chopEnds(Node node){
 
-        if(node != nodes.get(0) && node != nodes.get(nodes.size()-1)){
+        if(node != nodes.get(0) || node != nodes.get(nodes.size()-1)){
             if (isBelongs(nodes.get(0),node,firstNode)){
                 chopLeft(node);
             }
@@ -153,6 +159,14 @@ public class SelectedText  {
                 chopRight(node);
             }
         }
+    }
+
+    public void chopNear(Node node){
+//        if(nodes.size() <= 3 && node != nodes.get(0) || nodes.get(nodes)){
+//            int firstNodeIndex = nodes.indexOf(node);
+//            if (firstNodeIndex == 0) remove(nodes.get(1));
+//            else remove(nodes.get(0));
+//        }
     }
 }
 
