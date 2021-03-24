@@ -8,20 +8,21 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
-import javafx.stage.Screen;
+import javafx.scene.text.*;
 
 public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     Caret caret = new Caret();
     TextFlow textFlow  = new TextFlow(caret.getTextCaret());
-    String  style = " -fx-font: 20 Times_New_Roman;";
+    String textSize = "16";
+    String  textFont = "Times New Roman";
+    boolean italic = false;
+    boolean bold = false;
+    boolean underline = false;
     boolean selectability = false;
     SelectedText selectedText = new SelectedText(textFlow,caret);
 
     WorkingArea(){
         super();
-        textFlow.setPrefHeight(Screen.getPrimary().getBounds().getHeight());
         textFlow.setOnMouseDragged(e-> {
             changeChoice(true);
             if (selectability) {
@@ -32,10 +33,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
                 }
             }
         });
-        textFlow.setOnMousePressed(mouseEvent ->{
-            changeChoice(false);
-            System.out.println("Pressed");
-        });
+        textFlow.setOnMousePressed(mouseEvent -> changeChoice(false));
         textFlow.setOnMouseClicked(this::mouseCaretControl);
         super.setContent(textFlow);
     }
@@ -82,6 +80,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         else if(keyEvent.getCode() == KeyCode.LEFT) leftKey();
         else if (keyEvent.getCode() == KeyCode.UP) upKey();
         else if (keyEvent.getCode() == KeyCode.DOWN) downKey();
+        else if (keyEvent.getCode() == KeyCode.SPACE) addToTextFlow(" ");
         else if (keyEvent.getCode() == KeyCode.ENTER) addToTextFlow("\n");
         else if (keyEvent.getCode() == KeyCode.CAPS || keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.SHIFT || keyEvent.getCode() == KeyCode.ALT) return;
         else if(keyEvent.getCode() == KeyCode.BACK_SPACE) backSpaceKey();
@@ -154,7 +153,6 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     }
     public void downKeyGear(double nodeX, double nodeY, double nodeYNew){
         Node node = getNodeByCoordinates(nodeX,nodeY,nodeYNew);
-        System.out.println(node);
         Node caretNode = textFlow.getChildren().get(caret.caretIndex(textFlow));
         if (node == null)
         {
@@ -219,10 +217,28 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     public boolean inBounds(double nodeX, double nodeY, double boundsMinX, double boundsMaxX, double boundsMinY, double boundsMaxY){
         return boundsMinX <= nodeX && boundsMaxX >= nodeX && boundsMinY < nodeY && boundsMaxY >= nodeY;
     }
+
+    // sets text font in default
+    public void setTextFont(Text text) {
+        if(italic && bold) text.setFont(Font.font(textFont, FontWeight.BLACK,FontPosture.ITALIC,Double.parseDouble(textSize)));
+        else if(italic) text.setFont(Font.font(textFont,FontPosture.ITALIC,Double.parseDouble(textSize)));
+        else if(bold) text.setFont(Font.font(textFont, FontWeight.BLACK,Double.parseDouble(textSize)));
+        else text.setFont(Font.font(textFont,Double.parseDouble(textSize)));
+        if(underline) text.setUnderline(true);
+    }
+    public void setTextFont(Text text, FontWeight fontWeight) {
+        if(italic) text.setFont(Font.font(textFont, fontWeight,FontPosture.ITALIC,Double.parseDouble(textSize)));
+        else text.setFont(Font.font(textFont,fontWeight,Double.parseDouble(textSize)));
+    }
+    public void setTextFont(Text text, FontPosture fontPosture) {
+        if(bold) text.setFont(Font.font(textFont, FontWeight.BOLD,fontPosture,Double.parseDouble(textSize)));
+        else text.setFont(Font.font(textFont,fontPosture,Double.parseDouble(textSize)));
+    }
+
     // creates text element & set style before adding it to the textFlow
     public void addToTextFlow(String string){
         Text text = new Text(string);
-        text.setStyle(style);
+        setTextFont(text);
         if(selectability){
             moveBehindSelected();
             remove();
@@ -232,6 +248,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     // inserts Text to textFlow
     public void insert(Text text){
         int caretIndex = caret.caretIndex(textFlow);
+        this.caret.changeSize(textFlow);
         Node caret = textFlow.getChildren().get(caretIndex);
         textFlow.getChildren().set(caretIndex,text);
         moveCaretBehind(caretIndex + 1 , caret);
@@ -251,6 +268,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         while(!tempTextFlow.getChildren().isEmpty()){                 //Adding the test og text
             textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
         }
+        this.caret.changeSize(textFlow);
     }
     // changing caret position behind in textFlow
     public void moveCaretBehind(int index, Node caret){
@@ -263,6 +281,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         while (!tempTextFlow.getChildren().isEmpty()){
             textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
         }
+        this.caret.changeSize(textFlow);
     }
     // remove Node/Nodes (if selected)  in textFlow
     public void remove(){
@@ -293,4 +312,56 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         if (index != caretIndex + 1)
         moveCaretForward(caretNode,caretIndex,index);
     }
+
+    // Text changes
+
+    // false if not global
+    public void changeFont(){
+        if(selectability){
+            for (int i = 0; i < selectedText.nodes.size(); i++){
+                setTextFont(((Text)selectedText.nodes.get(i)));
+            }
+        }
+    }
+    public void changeBold(){
+        FontWeight fontWeight;
+        if(bold) fontWeight = FontWeight.BOLD;
+        else fontWeight = FontWeight.NORMAL;
+        if(selectability){
+            for (int i = 0; i < selectedText.nodes.size(); i++){
+                setTextFont(((Text)selectedText.nodes.get(i)),fontWeight);
+            }
+        }
+    }
+    public void changeItalic(){
+        FontPosture fontPosture;
+        if(italic) fontPosture = FontPosture.ITALIC;
+        else fontPosture = FontPosture.REGULAR;
+        if(selectability){
+            for (int i = 0; i < selectedText.nodes.size(); i++){
+                setTextFont(((Text)selectedText.nodes.get(i)),fontPosture);
+            }
+        }
+    }
+    public void changeUnderline(){
+        if(selectability){
+            for (int i = 0; i < selectedText.nodes.size(); i++){
+                ((Text)selectedText.nodes.get(i)).setUnderline(underline);
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

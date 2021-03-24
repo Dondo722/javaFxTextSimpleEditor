@@ -3,17 +3,17 @@ package sample;
 
 
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.BorderPane;
 
 
-public class TextEditor extends VBox {
-    EditorMenuBar editorMenuBar = new EditorMenuBar();
-    Toolbar toolbar = new Toolbar();
+public class TextEditor extends BorderPane {
     WorkingArea workingArea = new WorkingArea();
+    TextEditorMenu textEditorMenu = new TextEditorMenu(workingArea);
 
     TextEditor() {
         super();
-        super.getChildren().addAll(editorMenuBar, toolbar, workingArea);
+        super.setTop(textEditorMenu);
+        super.setCenter(workingArea);
     }
     public void addEventHandlers(){
         this.getScene().addEventHandler(KeyEvent.KEY_PRESSED,workingArea);

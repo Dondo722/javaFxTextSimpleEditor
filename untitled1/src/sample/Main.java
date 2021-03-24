@@ -16,7 +16,7 @@ public class Main extends Application {
     public void start(Stage stage)
     {
         TextEditor textEditor = new TextEditor();
-        Scene scene = new Scene(textEditor,400,400);
+        Scene scene = new Scene(textEditor,500,600);
         textEditor.addEventHandlers();
         stage.setScene(scene);
         stage.show();

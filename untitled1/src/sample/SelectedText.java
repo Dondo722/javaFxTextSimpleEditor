@@ -3,10 +3,13 @@ package sample;
 
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
-import java.util.List;
+
 
 
 public class SelectedText  {
@@ -15,8 +18,7 @@ public class SelectedText  {
     Node firstNode = null;
     Node secondNode = null;
     boolean selectable = false;
-    public final List<Node> nodes = FXCollections.observableArrayList();
-
+    public final ObservableList<Node> nodes = FXCollections.observableArrayList();
 
     SelectedText(TextFlow textFlow, Caret caret){
         this.textflow = textFlow;
@@ -39,25 +41,24 @@ public class SelectedText  {
         }
         else if(nodes.contains(node) && node != caretNode ){
             chopEnds(node);
-            chopNear(node);
         }
     }
 
 
     public void add(Node node){
         if (nodes.contains(node) || node == caretNode)return;
-        node.setStyle("-fx-font: 20 Times_New_Roman; -fx-fill: purple");
+        ((Text)node).setFill(Color.GRAY);
         nodes.add(node);
     }
     public void add(int i,Node node){
         if (nodes.contains(node) || node == caretNode)return;
-        node.setStyle("-fx-font: 20 Times_New_Roman; -fx-fill: purple");
+        ((Text)node).setFill(Color.GRAY);
         nodes.add(i,node);
     }
 
     public void remove(Node node){
         if (!nodes.contains(node))return;
-        node.setStyle("-fx-font: 20 Times_New_Roman;");
+        ((Text)node).setFill(Color.BLACK);
         nodes.remove(node);
     }
     public void remove(Node from, Node to){
@@ -72,7 +73,7 @@ public class SelectedText  {
     }
     public void removeAll(){
         while (!nodes.isEmpty()) {
-            nodes.get(0).setStyle("-fx-font: 20 Times_New_Roman;");
+            ((Text)nodes.get(0)).setFill(Color.BLACK);
             nodes.remove(nodes.get(0));
         }
         firstNode = null;
@@ -132,20 +133,12 @@ public class SelectedText  {
     //change chops in future
 
     public void chopRight(Node node){
-//        Node tempNode;
-//        if(node != nodes.get(nodes.size() - 1)) tempNode = nodes.get(nodes.indexOf(node) + 1); // first index left after node
-//        else tempNode = node;
         remove(node,nodes.get(nodes.size()-1));
-
     }
 
 
     public void chopLeft(Node node){
-//        Node tempNode;
-//        if (node != nodes.get(0)) tempNode = nodes.get(nodes.indexOf(node) - 1); // first index right before node
-//        else tempNode = node;
         remove(nodes.get(0), node);
-
     }
 
 
@@ -161,13 +154,6 @@ public class SelectedText  {
         }
     }
 
-    public void chopNear(Node node){
-//        if(nodes.size() <= 3 && node != nodes.get(0) || nodes.get(nodes)){
-//            int firstNodeIndex = nodes.indexOf(node);
-//            if (firstNodeIndex == 0) remove(nodes.get(1));
-//            else remove(nodes.get(0));
-//        }
-    }
 }
 
 

@@ -9,10 +9,9 @@ public class Caret{
      protected Text textCaret;
 //    textCaret.setStyle("-fx-font: 2 arial;");
 
-    Caret()
-    {
+    Caret(){
         textCaret = new Text("|");
-        textCaret.setStyle("-fx-font: 20 Times_New_Roman;");
+
     }
 
 
@@ -29,4 +28,8 @@ public class Caret{
     {
         return textFlow.getChildren().get(caretIndex(textFlow));
     }
+     public void changeSize(TextFlow textFlow){
+         if(caretIndex(textFlow)  > 0 )
+         textCaret.setFont(((Text) textFlow.getChildren().get(caretIndex(textFlow)-1)).getFont());
+     }
 }
