@@ -16,6 +16,6 @@ public class TextEditor extends BorderPane {
         super.setCenter(workingArea);
     }
     public void addEventHandlers(){
-        this.getScene().addEventHandler(KeyEvent.KEY_PRESSED,workingArea);
+        this.getScene().addEventFilter(KeyEvent.KEY_PRESSED,workingArea);
     }
 }

@@ -128,10 +128,6 @@ public class SelectedText  {
         return (nodes.indexOf(from) <= nodes.indexOf(node) && nodes.indexOf(node) <= nodes.indexOf(to));
     }
 
-
-
-    //change chops in future
-
     public void chopRight(Node node){
         remove(node,nodes.get(nodes.size()-1));
     }
@@ -153,7 +149,15 @@ public class SelectedText  {
             }
         }
     }
-
+    public String toString(){
+        String string = "";
+        String tempString;
+        for (Node node : nodes) {
+            tempString = ((Text) node).getText();
+            string += tempString;
+        }
+        return string;
+    }
 }
 
 

@@ -2,13 +2,12 @@ package sample;
 
 
 import javafx.event.EventHandler;
-import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.text.*;
+
+import static javafx.scene.input.DataFormat.PLAIN_TEXT;
 
 public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     Caret caret = new Caret();
@@ -20,6 +19,8 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     boolean underline = false;
     boolean selectability = false;
     SelectedText selectedText = new SelectedText(textFlow,caret);
+
+    //KeyCombination crtlC = new KeyCombination(KeyCode.CONTROL);
 
     WorkingArea(){
         super();
@@ -47,14 +48,6 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         selectability = changeOn;
         selectedText.setSelectable(selectability);
     }
-    // return string info of "Text" node
-    public String nodeToString(Node node){
-        String nodeDate = node.toString();
-        int startIndex = nodeDate.indexOf('"');
-        int endIndex = nodeDate.lastIndexOf('"');
-
-        return nodeDate.substring(startIndex + 1,endIndex);
-    }
 
     // if mouse clicked on textFlow it's move caret to position where mouse was clicked
     public void mouseCaretControl(MouseEvent mouseEvent)
@@ -76,12 +69,16 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
 
     public void keyPressed(KeyEvent keyEvent)
     {
+
+
         if(keyEvent.getCode() == KeyCode.RIGHT) rightKey();
         else if(keyEvent.getCode() == KeyCode.LEFT) leftKey();
         else if (keyEvent.getCode() == KeyCode.UP) upKey();
         else if (keyEvent.getCode() == KeyCode.DOWN) downKey();
         else if (keyEvent.getCode() == KeyCode.SPACE) addToTextFlow(" ");
         else if (keyEvent.getCode() == KeyCode.ENTER) addToTextFlow("\n");
+        else if (keyEvent.getCode() == KeyCode.C && keyEvent.isControlDown()) ctrlCKey();
+        else if(keyEvent.getCode() == KeyCode.V && keyEvent.isControlDown()) ctrlVKey();
         else if (keyEvent.getCode() == KeyCode.CAPS || keyEvent.getCode() == KeyCode.CONTROL || keyEvent.getCode() == KeyCode.SHIFT || keyEvent.getCode() == KeyCode.ALT) return;
         else if(keyEvent.getCode() == KeyCode.BACK_SPACE) backSpaceKey();
         else  addToTextFlow(keyEvent.getText());
@@ -121,22 +118,28 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             changeChoice(false);
         }
         else {
-            double caretMaxX = caret.caretNode(textFlow).getBoundsInParent().getMaxX();
-            double caretMaxY = caret.caretNode(textFlow).getBoundsInParent().getMaxY();
-            double nodeHeight = caret.caretNode(textFlow).getBoundsInParent().getHeight();
-            double caretYNew = caretMaxY - nodeHeight;
-            upKeyGear(caretMaxX, caretMaxY, caretYNew);
+            int nodeIndex = getNodeHigherIndex();
+            if(nodeIndex == 0){
+                if(!((Text)textFlow.getChildren().get(0)).getText().equals("\n"))
+                    return;
+            }
+            moveCaretBehind(nodeIndex ,caret.caretNode(textFlow));
         }
     }
-    public void upKeyGear(double nodeX, double nodeY, double nodeYNew){
-        Node node = getNodeByCoordinates(nodeX,nodeY,nodeYNew);
-        Node caretNode = textFlow.getChildren().get(caret.caretIndex(textFlow));
-        if (node == null)
-        {
-            node = firstEnterBefore(textFlow.getChildren().indexOf(caretNode));
-            if (node == null)return;
+    public int getNodeHigherIndex(){
+        int caretIndex = caret.caretIndex(textFlow);
+        int startIndex = firstEnterBefore(caretIndex);
+        int endIndex = firstEnterBefore(startIndex - 1);
+
+        System.out.println(startIndex);
+        System.out.println(endIndex);
+
+        double nodeX = textFlow.getChildren().get(caretIndex).getBoundsInParent().getMaxX();
+        for (int i = startIndex; i >= endIndex; i--){
+            if(inBounds(textFlow.getChildren().get(i),nodeX))
+                return i;
         }
-        moveCaretBehind(textFlow.getChildren().indexOf(node),caretNode);
+        return startIndex;
     }
     public void downKey(){
         if (selectability) {
@@ -144,81 +147,95 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             changeChoice(false);
         }
         else {
-            double caretMaxX = caret.caretNode(textFlow).getBoundsInParent().getMaxX();
-            double caretMaxY = caret.caretNode(textFlow).getBoundsInParent().getMaxY();
-            double nodeHeight = caret.caretNode(textFlow).getBoundsInParent().getHeight();
-            double caretYNew = caretMaxY + nodeHeight;
-            downKeyGear(caretMaxX, caretMaxY, caretYNew);
+            int nodeIndex = getNodeLowerIndex();
+            if(nodeIndex == -1) return;
+            moveCaretForward(caret.caretNode(textFlow),caret.caretIndex(textFlow),nodeIndex);
         }
     }
-    public void downKeyGear(double nodeX, double nodeY, double nodeYNew){
-        Node node = getNodeByCoordinates(nodeX,nodeY,nodeYNew);
-        Node caretNode = textFlow.getChildren().get(caret.caretIndex(textFlow));
-        if (node == null)
-        {
-            node = secondEnterAfter(textFlow.getChildren().indexOf(caretNode));
-            if (node == null)return;
-        }
-        int futureIndex = textFlow.getChildren().indexOf(node);
-        if (node != textFlow.getChildren().get(textFlow.getChildren().size()-1))
-            futureIndex -= 1;
+    public int getNodeLowerIndex(){
+        int caretIndex = caret.caretIndex(textFlow);
+        int startIndex = firstEnterAfter(caretIndex);
+        int endIndex = firstEnterAfter(startIndex + 1);
+        if(startIndex == endIndex) return -1;
+        System.out.println(startIndex);
+        System.out.println(endIndex);
 
-        moveCaretForward(caretNode,caret.caretIndex(textFlow),futureIndex);
+        double nodeX = textFlow.getChildren().get(caretIndex).getBoundsInParent().getMaxX();
+        if(startIndex == caretIndex +1)startIndex +=1;
+        for (int i = startIndex; i < endIndex; i++){
+            if(inBounds(textFlow.getChildren().get(i),nodeX))
+                return i;
+        }
+        if (endIndex + 1 == textFlow.getChildren().size()) return  endIndex;
+        return endIndex - 1;
     }
     public void backSpaceKey(){
         remove();
     }
-
+    public void ctrlCKey(){
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(selectedText.toString());
+        clipboard.setContent(content);
+    }
+    public void ctrlVKey(){
+        if(selectability){
+            moveBehindSelected();
+            remove();
+        }
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        String content = clipboard.getContent(PLAIN_TEXT).toString();
+        for (int i = 0; content.length() > i; i++)
+        {
+            Text text = new Text();
+            text.setText(String.valueOf(content.charAt(i)));
+            insert(text);
+        }
+    }
 
     //Key "logic" methods
     //***************************************************
 
     // first enter before is a part of upKey logic that return first \n in textFlow before caret
-    public Node firstEnterBefore(int nodeIndex){
+    public int firstEnterBefore(int nodeIndex){
         for (int i = nodeIndex; i >= 0; i--){
-            if (nodeToString(textFlow.getChildren().get(i)).equals("\n")) return textFlow.getChildren().get(i);
+            if (((Text)textFlow.getChildren().get(i)).getText().equals("\n")) return i;
         }
-        return null;
+        return 0;
     }
-    // second enter after is a part of downKey logic that return second \n in textFlow after caret if it's exist & last index of node if second \n doesn't exist
-    public Node secondEnterAfter(int nodeIndex){
-        int count = 0;
+    public int firstEnterAfter(int nodeIndex){
         for (int i = nodeIndex; i < textFlow.getChildren().size(); i++){
-
-            if (nodeToString(textFlow.getChildren().get(i)).equals("\n")) {
-                System.out.println(count + "     ");
-                if(count == 1) return textFlow.getChildren().get(i);
-                else count++;
-            }
-            if(i == textFlow.getChildren().size() - 1 && count == 1) return textFlow.getChildren().get(i);
+            if (((Text)textFlow.getChildren().get(i)).getText().equals("\n")) return i;
         }
-        return null;
+        return textFlow.getChildren().size() - 1;
     }
-    // if node with this coordinates(nodeX, nodeYNew) exist then it will return it
-    public Node getNodeByCoordinates(double nodeX, double nodeY, double nodeYNew){
-        Bounds bounds;
-        if(nodeY > nodeYNew){
-            for (int i = 0; i < textFlow.getChildren().size() ; i++){
-                bounds = textFlow.getChildren().get(i).getBoundsInParent();
-                if (inBounds(nodeX,nodeYNew, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(),bounds.getMaxY()))return textFlow.getChildren().get(i);
-            }
-        }
-        else if(nodeY < nodeYNew){
-            for (int i = caret.caretIndex(textFlow); i < textFlow.getChildren().size() ; i++){
-                bounds = textFlow.getChildren().get(i).getBoundsInParent();
-                if (inBounds(nodeX,nodeYNew, bounds.getMinX(), bounds.getMaxX(), bounds.getMinY(),bounds.getMaxY())){
-                    return textFlow.getChildren().get(i);
-                }
-            }
-        }
-        return null;
+    public boolean inBounds(Node node, double caretMinX){
+        double minX = node.getBoundsInParent().getMinX();
+        double maxX = node.getBoundsInParent().getMaxX();
+        return minX <= caretMinX && maxX >= caretMinX;
     }
-    // if nodeX & nodeY is in bounds return true, else false
-    public boolean inBounds(double nodeX, double nodeY, double boundsMinX, double boundsMaxX, double boundsMinY, double boundsMaxY){
-        return boundsMinX <= nodeX && boundsMaxX >= nodeX && boundsMinY < nodeY && boundsMaxY >= nodeY;
+    //sets new Text Weight
+    public void setTextFont(Text text, FontWeight fontWeight){
+        Font font = text.getFont();
+        String family = font.getFamily();
+        double size = font.getSize();
+        if(font.getStyle().length() == 7 || font.getStyle().length() == 4 ) setTextFont(text,family,fontWeight,FontPosture.REGULAR,size);
+        else     setTextFont(text,family,fontWeight,FontPosture.ITALIC,size);
     }
-
-    // sets text font in default
+    //sets new FontPosture
+    public void setTextFont(Text text, FontPosture fontPosture){
+        Font font = text.getFont();
+        String family = font.getFamily();
+        double size = font.getSize();
+        if(font.getStyle().length() == 11 || font.getStyle().length() == 4 ) setTextFont(text,family,FontWeight.BOLD,fontPosture,size);
+        else     setTextFont(text,family,FontWeight.NORMAL,fontPosture,size);
+    }
+    //sets TextFont by parameters
+    public void setTextFont(Text text , String font, FontWeight fontWeight, FontPosture fontPosture,double size) {
+        text.setFont(Font.font(font, fontWeight,fontPosture,size));
+        if(underline) text.setUnderline(true);
+    }
+    // sets text font by default settings
     public void setTextFont(Text text) {
         if(italic && bold) text.setFont(Font.font(textFont, FontWeight.BLACK,FontPosture.ITALIC,Double.parseDouble(textSize)));
         else if(italic) text.setFont(Font.font(textFont,FontPosture.ITALIC,Double.parseDouble(textSize)));
@@ -226,15 +243,6 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         else text.setFont(Font.font(textFont,Double.parseDouble(textSize)));
         if(underline) text.setUnderline(true);
     }
-    public void setTextFont(Text text, FontWeight fontWeight) {
-        if(italic) text.setFont(Font.font(textFont, fontWeight,FontPosture.ITALIC,Double.parseDouble(textSize)));
-        else text.setFont(Font.font(textFont,fontWeight,Double.parseDouble(textSize)));
-    }
-    public void setTextFont(Text text, FontPosture fontPosture) {
-        if(bold) text.setFont(Font.font(textFont, FontWeight.BOLD,fontPosture,Double.parseDouble(textSize)));
-        else text.setFont(Font.font(textFont,fontPosture,Double.parseDouble(textSize)));
-    }
-
     // creates text element & set style before adding it to the textFlow
     public void addToTextFlow(String string){
         Text text = new Text(string);
@@ -295,7 +303,6 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
                 textFlow.getChildren().remove(caretIndex-1,caretIndex);
         }
     }
-
     // Selected text caret moves
     public void moveBehindSelected(){
         Node node = selectedText.nodes.get(0);
@@ -312,12 +319,11 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         if (index != caretIndex + 1)
         moveCaretForward(caretNode,caretIndex,index);
     }
-
     // Text changes
-
     // false if not global
     public void changeFont(){
         if(selectability){
+
             for (int i = 0; i < selectedText.nodes.size(); i++){
                 setTextFont(((Text)selectedText.nodes.get(i)));
             }
@@ -350,7 +356,6 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             }
         }
     }
-
 
 
 
