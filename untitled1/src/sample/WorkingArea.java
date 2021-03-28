@@ -1,6 +1,8 @@
 package sample;
 
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
@@ -10,19 +12,19 @@ import javafx.scene.text.*;
 import static javafx.scene.input.DataFormat.PLAIN_TEXT;
 
 public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
-    Caret caret = new Caret();
-    TextFlow textFlow  = new TextFlow(caret.getTextCaret());
-    String textSize = "16";
-    String  textFont = "Times New Roman";
-    boolean italic = false;
-    boolean bold = false;
-    boolean underline = false;
-    boolean selectability = false;
-    SelectedText selectedText = new SelectedText(textFlow,caret);
+    public Caret caret = new Caret();
+    public TextFlow textFlow  = new TextFlow(caret.getTextCaret());
+    public String textSize = "16";
+    public String  textFont = "Times New Roman";
+    public boolean italic = false;
+    public boolean bold = false;
+    public boolean underline = false;
+    public boolean selectability = false;
+    public SelectedText selectedText = new SelectedText(textFlow,caret);
 
     //KeyCombination crtlC = new KeyCombination(KeyCode.CONTROL);
 
-    WorkingArea(){
+    public WorkingArea(){
         super();
         textFlow.setOnMouseDragged(e-> {
             changeChoice(true);
@@ -187,8 +189,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         String content = clipboard.getContent(PLAIN_TEXT).toString();
         for (int i = 0; content.length() > i; i++)
         {
-            Text text = new Text();
-            text.setText(String.valueOf(content.charAt(i)));
+            CustomText text = new CustomText(String.valueOf(content.charAt(i)));
             insert(text);
         }
     }
@@ -245,8 +246,9 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
     }
     // creates text element & set style before adding it to the textFlow
     public void addToTextFlow(String string){
-        Text text = new Text(string);
-        setTextFont(text);
+//        Text text = new Text(string);
+//        setTextFont(text);
+        CustomText text = new CustomText(string);
         if(selectability){
             moveBehindSelected();
             remove();
@@ -254,7 +256,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         insert(text);
     }
     // inserts Text to textFlow
-    public void insert(Text text){
+    public void insert(CustomText text){
         int caretIndex = caret.caretIndex(textFlow);
         this.caret.changeSize(textFlow);
         Node caret = textFlow.getChildren().get(caretIndex);
@@ -325,7 +327,9 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         if(selectability){
 
             for (int i = 0; i < selectedText.nodes.size(); i++){
-                setTextFont(((Text)selectedText.nodes.get(i)));
+                ((CustomText)selectedText.nodes.get(i)).setTextFont(textFont);
+                ((CustomText)selectedText.nodes.get(i)).setTextSize(textSize);
+                //setTextFont(((Text)selectedText.nodes.get(i)));
             }
         }
     }
@@ -356,8 +360,30 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             }
         }
     }
-
-
+    public String getString(){
+        String string = "";
+        for (int i = 0; i< textFlow.getChildren().size(); i++){
+            if( i != caret.caretIndex(textFlow))
+            string += ((Text)textFlow.getChildren().get(i)).getText();
+        }
+        return string;
+    }
+    public String getStringNodes(){
+        String string = "";
+        for (int i = 0; i< textFlow.getChildren().size(); i++){
+            if( i != caret.caretIndex(textFlow))
+                string += ((Text)textFlow.getChildren().get(i)).toString();
+        }
+        return string;
+    }
+    public TextFlow getTextFlow(){
+        TextFlow textFlow = new TextFlow();
+        for (int i = 0; i < this.textFlow.getChildren().size(); i++) {
+            Node node = this.textFlow.getChildren().get(i);
+            textFlow.getChildren().add(node);
+        }
+        return textFlow;
+    }
 
 
 
