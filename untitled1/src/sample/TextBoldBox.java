@@ -1,7 +1,6 @@
 package sample;
 
 import javafx.scene.control.CheckBox;
-import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 
