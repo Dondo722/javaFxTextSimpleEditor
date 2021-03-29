@@ -4,14 +4,14 @@ import javafx.scene.layout.VBox;
 
 public class TextEditorMenu extends VBox {
     WorkingArea workingArea;
-    EditorMenuBar editorMenuBar;
+    FileMenuBar fileMenuBar;
     Toolbar toolbar;
 
     TextEditorMenu(WorkingArea workingArea){
       super();
       this.workingArea = workingArea;
-      editorMenuBar = new EditorMenuBar(workingArea);
+      fileMenuBar = new FileMenuBar(workingArea);
       toolbar = new Toolbar(workingArea);
-      super.getChildren().addAll(editorMenuBar,toolbar);
+      super.getChildren().addAll(fileMenuBar,toolbar);
     }
 }

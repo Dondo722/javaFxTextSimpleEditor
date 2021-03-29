@@ -1,17 +1,12 @@
 package sample;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public class CustomText extends Text {
-    public String textSize ;//= new SimpleStringProperty(this,"textSize","16");
+    public String textSize ;
     public String  textFont ;
     public FontWeight fontWeight ;
     public FontPosture fontPosture ;
@@ -22,15 +17,6 @@ public class CustomText extends Text {
 
     }
 
-    public CustomText(CustomText customText){
-        super(customText.getText());
-        textSize = customText.textSize;
-        textFont = customText.textFont;
-        fontWeight = customText.fontWeight;
-        fontPosture = customText.fontPosture;
-
-    }
-
     public CustomText(String text){
         super(text);
         textFont = "Times New Roman";
@@ -38,17 +24,7 @@ public class CustomText extends Text {
         fontPosture = FontPosture.REGULAR;
         underline = false;
         textSize = "16";
-        setFont(this);
-    }
-
-    public CustomText(String text, String textSize){
-        super(text);
-        textFont = "Times New Roman";
-        fontWeight = FontWeight.NORMAL;
-        fontPosture = FontPosture.REGULAR;
-        underline = false;
-        this.textSize = (textSize);
-        //setFont();
+        setFont();
     }
     public CustomText(String text, String Size,String Font,FontWeight weight, FontPosture posture, boolean underline){
         super(text);
@@ -57,33 +33,58 @@ public class CustomText extends Text {
         this.fontWeight = weight;
         this.fontPosture = posture;
         this.underline = underline;
-        setFont(this);
+        setFont();
+    }
+    public CustomText(Text text){
+        super(text.getText());
+        this.textSize = String.valueOf(text.getFont().getSize());
+        this.textFont = text.getFont().getName();
+        this.underline = text.isUnderline();
+        switch (text.getFont().getStyle()) {
+            case "Regular" -> {
+                this.fontWeight = FontWeight.NORMAL;
+                this.fontPosture = FontPosture.REGULAR;
+            }
+            case "Bold" -> {
+                this.fontWeight = FontWeight.BOLD;
+                this.fontPosture = FontPosture.REGULAR;
+            }
+            case "Italic" -> {
+                this.fontWeight = FontWeight.NORMAL;
+                this.fontPosture = FontPosture.ITALIC;
+            }
+            case "Bold Italic" -> {
+                this.fontWeight = FontWeight.BOLD;
+                this.fontPosture = FontPosture.ITALIC;
+            }
+        }
+        setFont();
     }
 
     public void setTextFont(String textFont) {
         this.textFont = textFont;
-        setFont(this);
+        setFont();
     }
 
     public void setTextSize(String textSize) {
         this.textSize = textSize;
-        setFont(this);
+        setFont();
     }
 
     public void setFontWeight(FontWeight fontWeight) {
         this.fontWeight = fontWeight;
-        setFont(this);
+        setFont();
     }
 
     public void setFontPosture(FontPosture fontPosture) {
         this.fontPosture = fontPosture;
-       setFont(this);
+       setFont();
     }
 
 
-    public void setFont(Text text) {
-        text.setFont(Font.font(textFont, fontWeight,fontPosture,Double.parseDouble(textSize)));
-        if(underline) text.setUnderline(true);
+    public void setFont() {
+        this.setFont(Font.font(textFont, fontWeight,fontPosture,Double.parseDouble(textSize)));
+        if(underline) this.setUnderline(true);
     }
 
     public String getTextSize() { return textSize;}
@@ -100,4 +101,11 @@ public class CustomText extends Text {
         return fontPosture;
     }
 
+    public void textToCustom(Text text){
+        String style =  text.getFont().getStyle();
+        Text text1 = new Text("fiasodpfoa");
+        text1.setStyle(style);
+        System.out.println(style);
+        System.out.println(text1);
+    }
 }
