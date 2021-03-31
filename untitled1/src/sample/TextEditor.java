@@ -1,7 +1,5 @@
 package sample;
 
-
-
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 

@@ -1,15 +1,11 @@
 package sample;
 
-
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-
-
 
 
 public class SelectedText  {

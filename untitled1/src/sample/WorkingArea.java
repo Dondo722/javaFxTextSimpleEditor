@@ -33,7 +33,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             }
         });
         textFlow.setOnMousePressed(mouseEvent -> changeChoice(false));
-        textFlow.setOnMouseClicked(this::mouseCaretControl);
+        textFlow.setOnMouseClicked(mouseEvent -> caret.mouseCaretControl(textFlow,mouseEvent));
         super.setContent(textFlow);
     }
     public void requestFocus(){}
@@ -47,28 +47,11 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         selectedText.setSelectable(selectability);
     }
 
-    // if mouse clicked on textFlow it's move caret to position where mouse was clicked
-    public void mouseCaretControl(MouseEvent mouseEvent)
-    {
-        Node chosenNode = mouseEvent.getPickResult().getIntersectedNode();
-        if (!(chosenNode instanceof Text)) return;
-        int chosenNodeIndex = textFlow.getChildren().indexOf(chosenNode);
-        int caretIndex  = caret.caretIndex(textFlow);
-        Node caretNode = textFlow.getChildren().get(caretIndex);
-        if (caretIndex < chosenNodeIndex) {
-            moveCaretForward(caretNode, caretIndex, chosenNodeIndex);
-        }
-        else moveCaretBehind(chosenNodeIndex,caretNode);
-    }
-
-
     // Keys methods
     //***************************************************
 
     public void keyPressed(KeyEvent keyEvent)
     {
-
-
         if(keyEvent.getCode() == KeyCode.RIGHT) rightKey();
         else if(keyEvent.getCode() == KeyCode.LEFT) leftKey();
         else if (keyEvent.getCode() == KeyCode.UP) upKey();
@@ -92,7 +75,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             int caretIndex  = caret.caretIndex(textFlow);
             if (caretIndex != textFlow.getChildren().size() - 1) {
                 Node caretNode = textFlow.getChildren().get(caretIndex);
-                moveCaretForward(caretNode, caretIndex, caretIndex + 1);
+                this.caret.moveCaretForward(textFlow, caretNode, caretIndex, caretIndex + 1);
             }
         }
     }
@@ -106,7 +89,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             int caretIndex = caret.caretIndex(textFlow);
             if (caretIndex > 0) {
                 Node caret = textFlow.getChildren().get(caretIndex);
-                moveCaretBehind(caretIndex - 1, caret);
+                this.caret.moveCaretBehind(textFlow,caretIndex - 1, caret);
             }
         }
     }
@@ -121,7 +104,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
                 if(!((Text)textFlow.getChildren().get(0)).getText().equals("\n"))
                     return;
             }
-            moveCaretBehind(nodeIndex ,caret.caretNode(textFlow));
+            this.caret.moveCaretBehind(textFlow, nodeIndex ,caret.caretNode(textFlow));
         }
     }
     public int getNodeHigherIndex(){
@@ -147,7 +130,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         else {
             int nodeIndex = getNodeLowerIndex();
             if(nodeIndex == -1) return;
-            moveCaretForward(caret.caretNode(textFlow),caret.caretIndex(textFlow),nodeIndex);
+            this.caret.moveCaretForward(textFlow,caret.caretNode(textFlow),caret.caretIndex(textFlow),nodeIndex);
         }
     }
     public int getNodeLowerIndex(){
@@ -226,37 +209,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         this.caret.changeSize(textFlow);
         Node caret = textFlow.getChildren().get(caretIndex);
         textFlow.getChildren().set(caretIndex,text);
-        moveCaretBehind(caretIndex + 1 , caret);
-    }
-    // changing caret position forward in textFlow
-    public void moveCaretForward(Node caretNode, int caretIndexBefore, int caretIndexAfter){
-        TextFlow tempTextFlow = new TextFlow();
-        caretIndexBefore += 1;            // we don't need caret pos itself, we need first next element index
-        while (caretIndexBefore != textFlow.getChildren().size()){            //Coping text elements after caret position
-            tempTextFlow.getChildren().add(textFlow.getChildren().get(caretIndexBefore));
-        }
-        textFlow.getChildren().remove(caretNode);           //deleting caret
-        while (textFlow.getChildren().size() < caretIndexAfter ){            //Coping text before future caret position
-            textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
-        }
-        textFlow.getChildren().add(caretNode);                   //Adding Caret
-        while(!tempTextFlow.getChildren().isEmpty()){                 //Adding the test og text
-            textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
-        }
-        this.caret.changeSize(textFlow);
-    }
-    // changing caret position behind in textFlow
-    public void moveCaretBehind(int index, Node caret){
-        TextFlow tempTextFlow = new TextFlow();
-
-        while (index != textFlow.getChildren().size()){
-            tempTextFlow.getChildren().add(textFlow.getChildren().get(index));
-        }
-        textFlow.getChildren().add(caret);
-        while (!tempTextFlow.getChildren().isEmpty()){
-            textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
-        }
-        this.caret.changeSize(textFlow);
+        this.caret.moveCaretBehind(textFlow,caretIndex + 1 , caret);
     }
     // remove Node/Nodes (if selected)  in textFlow
     public void remove(){
@@ -276,7 +229,7 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         int index = textFlow.getChildren().indexOf(node);
         Node caretNode = caret.caretNode(textFlow);
         if (caret.caretIndex(textFlow) != index - 1)
-        moveCaretBehind(index,caretNode);
+        this.caret.moveCaretBehind(textFlow,index,caretNode);
     }
     public void moveForwardSelected(){
         Node node = selectedText.nodes.get(selectedText.nodes.size()-1);
@@ -284,18 +237,20 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         Node caretNode = caret.caretNode(textFlow);
         int caretIndex = caret.caretIndex(textFlow);
         if (index != caretIndex + 1)
-        moveCaretForward(caretNode,caretIndex,index);
+        this.caret.moveCaretForward(textFlow,caretNode,caretIndex,index);
     }
     // Text changes
     // false if not global
-    public void changeFont(){
+    public void changeFont(String font){
+        textFont = font;
         if(selectability){
             for (int i = 0; i < selectedText.nodes.size(); i++){
                 ((CustomText)selectedText.nodes.get(i)).setTextFont(textFont);
             }
         }
     }
-    public void changeFontSize(){
+    public void changeSize(String size){
+        textSize = size;
         if(selectability){
             for (int i = 0; i < selectedText.nodes.size(); i++){
                 ((CustomText)selectedText.nodes.get(i)).setTextSize(textSize);
@@ -303,6 +258,9 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         }
     }
     public void changeFontWeight(){
+        if(fontWeight == FontWeight.NORMAL)
+            fontWeight = FontWeight.BOLD;
+        else fontWeight = FontWeight.NORMAL;
         if(selectability){
             for (int i = 0; i < selectedText.nodes.size(); i++){
                 ((CustomText)selectedText.nodes.get(i)).setFontWeight(fontWeight);
@@ -310,6 +268,9 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         }
     }
     public void changeFontPosture(){
+        if(fontPosture == FontPosture.REGULAR)
+            fontPosture = FontPosture.ITALIC;
+        else fontPosture = FontPosture.REGULAR;
         if(selectability){
             for (int i = 0; i < selectedText.nodes.size(); i++){
                 ((CustomText)selectedText.nodes.get(i)).setFontPosture(fontPosture);
@@ -317,12 +278,14 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
         }
     }
     public void changeUnderline(){
+        underline = !underline;
         if(selectability){
             for (int i = 0; i < selectedText.nodes.size(); i++){
                 ((CustomText)selectedText.nodes.get(i)).setUnderline(underline);
             }
         }
     }
+
     public String getString(){
         String string = "";
         for (int i = 0; i< textFlow.getChildren().size(); i++){
@@ -342,13 +305,4 @@ public class WorkingArea extends ScrollPane implements EventHandler<KeyEvent> {
             textFlow.getChildren().remove(0,caretIndex);
         }
     }
-
-
-
-
-
-
-
-
-
 }

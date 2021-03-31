@@ -32,7 +32,7 @@ public class FileMenuBar extends HBox {
     MenuItem newItem = new MenuItem("New");
 
 
-    FileMenuBar(WorkingArea workingArea){
+    public FileMenuBar(WorkingArea workingArea){
         super();
         this.workingArea = workingArea;
         fileMenu.getItems().addAll(newItem,openItem,saveItem);

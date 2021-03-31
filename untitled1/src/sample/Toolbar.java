@@ -10,7 +10,7 @@ public class Toolbar extends HBox {
     TextBoldBox boldBox;
     TextItalicBox italicBox;
     UnderlineBox underlineBox;
-    Toolbar(WorkingArea workingArea){
+    public Toolbar(WorkingArea workingArea){
         super();
         super.setSpacing(8);
         this.workingArea = workingArea;
@@ -20,5 +20,16 @@ public class Toolbar extends HBox {
         italicBox = new TextItalicBox(workingArea);
         underlineBox = new UnderlineBox(workingArea);
         super.getChildren().addAll(fontBox,textSizeBox,boldBox,italicBox,underlineBox);
+    }
+    public Toolbar(WorkingArea workingArea,TextFontBox fontBox,TextSizeBox textSizeBox,TextBoldBox boldBox,TextItalicBox italicBox, UnderlineBox underlineBox){
+        super();
+        super.setSpacing(8);
+        this.workingArea = workingArea;
+        this.textSizeBox = textSizeBox;
+        this.fontBox = fontBox;
+        this.boldBox = boldBox;
+        this.italicBox = italicBox;
+        this.underlineBox = underlineBox;
+        super.getChildren().addAll(this.fontBox,this.textSizeBox,this.boldBox,this.italicBox,this.underlineBox);
     }
 }
