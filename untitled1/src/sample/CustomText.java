@@ -6,17 +6,16 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public class CustomText extends Text {
-    public String textSize ;
-    public String  textFont ;
-    public FontWeight fontWeight ;
-    public FontPosture fontPosture ;
-    public boolean underline ;
+    private String textSize ;
+    private String  textFont ;
+    private FontWeight fontWeight ;
+    private FontPosture fontPosture ;
+    private boolean underline ;
 
     public CustomText(){
         super();
 
     }
-
     public CustomText(String text){
         super(text);
         textFont = "Times New Roman";

@@ -5,11 +5,11 @@ import javafx.scene.layout.BorderPane;
 
 
 public class TextEditor extends BorderPane {
-    WorkingArea workingArea = new WorkingArea();
-    TextEditorMenu textEditorMenu = new TextEditorMenu(workingArea);
+    private final WorkingArea workingArea = new WorkingArea();
 
     TextEditor() {
         super();
+        TextEditorMenu textEditorMenu = new TextEditorMenu(workingArea);
         super.setTop(textEditorMenu);
         super.setCenter(workingArea);
     }

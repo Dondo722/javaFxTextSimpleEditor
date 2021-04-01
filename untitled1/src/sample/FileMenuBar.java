@@ -25,15 +25,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class FileMenuBar extends HBox {
-    Menu fileMenu = new Menu("File");
     WorkingArea workingArea;
-    MenuItem openItem = new MenuItem("Open");
-    MenuItem saveItem = new MenuItem("Save");
-    MenuItem newItem = new MenuItem("New");
 
 
     public FileMenuBar(WorkingArea workingArea){
         super();
+        Menu fileMenu = new Menu("File");
+        MenuItem openItem = new MenuItem("Open");
+        MenuItem saveItem = new MenuItem("Save");
+        MenuItem newItem = new MenuItem("New");
         this.workingArea = workingArea;
         fileMenu.getItems().addAll(newItem,openItem,saveItem);
         newItem.setOnAction(e -> workingArea.newTextFlow());
@@ -89,10 +89,10 @@ public class FileMenuBar extends HBox {
             CustomText customText = new CustomText();
             FileOutputStream fileOutputStream = new FileOutputStream(file);
             XMLEncoder encoder = new XMLEncoder(fileOutputStream);
-            encoder.writeObject(workingArea.textFlow.getChildren().size()-1);
-            for (int i = 0; i < workingArea.textFlow.getChildren().size(); i++){
-                if(i == workingArea.caret.caretIndex(workingArea.textFlow)) continue;
-                CustomText text = new CustomText((Text)workingArea.textFlow.getChildren().get(i));
+            encoder.writeObject(workingArea.getTextFlow().getChildren().size()-1);
+            for (int i = 0; i < workingArea.getTextFlow().getChildren().size(); i++){
+                if(i == workingArea.getCaret().caretIndex(workingArea.getTextFlow())) continue;
+                CustomText text = new CustomText((Text)workingArea.getTextFlow().getChildren().get(i));
                 customText.textToCustom(text);
                 System.out.println(text.getFont());
                 encoder.writeObject(text);
@@ -109,11 +109,13 @@ public class FileMenuBar extends HBox {
             FileReader reader;
             reader = new FileReader(file);
             Scanner scan = new Scanner(reader);
-            String string = "";
+            String string;
+            StringBuilder stringBuilder = new StringBuilder();
             while (scan.hasNext()){
-                string+=scan.nextLine();
-                string +="\n";
+                stringBuilder.append(scan.nextLine());
+                stringBuilder.append("\n");
             }
+            string = stringBuilder.toString();
             for (int i = 0; string.length() > i; i++)
             {
                 CustomText text = new CustomText(String.valueOf(string.charAt(i)));

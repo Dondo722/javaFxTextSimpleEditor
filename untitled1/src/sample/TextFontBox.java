@@ -5,13 +5,13 @@ import javafx.scene.text.Font;
 
 
 public class TextFontBox extends ChoiceBox<String> {
-    WorkingArea workingArea;
     public TextFontBox(WorkingArea workingArea){
         super();
-        this.workingArea = workingArea;
+        int BoxWidth = 180;
+        String defaultFont = "Times New Roman";
         this.getItems().addAll(Font.getFontNames());
-        this.setPrefWidth(180);
-        this.setValue("Times New Roman");
+        this.setPrefWidth(BoxWidth);
+        this.setValue(defaultFont);
         this.setOnAction(e -> workingArea.changeFont(this.getValue()));
     }
     public void requestFocus(){}

@@ -7,10 +7,9 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
 public class Caret{
-     protected Text textCaret;
+    protected Text textCaret;
     Caret(){
         textCaret = new Text("|");
-
     }
      public Text getTextCaret()
      {
@@ -31,16 +30,22 @@ public class Caret{
     // changing caret position forward in textFlow
     public void moveCaretForward(TextFlow textFlow,Node caretNode, int caretIndexBefore, int caretIndexAfter){
         TextFlow tempTextFlow = new TextFlow();
-        caretIndexBefore += 1;            // we don't need caret pos itself, we need first next element index
-        while (caretIndexBefore != textFlow.getChildren().size()){            //Coping text elements after caret position
+        // we don't need caret pos itself, we need first next element index
+        caretIndexBefore += 1;
+        //Coping text elements after caret position
+        while (caretIndexBefore != textFlow.getChildren().size()){
             tempTextFlow.getChildren().add(textFlow.getChildren().get(caretIndexBefore));
         }
-        textFlow.getChildren().remove(caretNode);           //deleting caret
-        while (textFlow.getChildren().size() < caretIndexAfter ){            //Coping text before future caret position
+        //deleting caret
+        textFlow.getChildren().remove(caretNode);
+        //Coping text before future caret position
+        while (textFlow.getChildren().size() < caretIndexAfter ){
             textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
         }
-        textFlow.getChildren().add(caretNode);                   //Adding Caret
-        while(!tempTextFlow.getChildren().isEmpty()){                 //Adding the test og text
+        //Adding Caret
+        textFlow.getChildren().add(caretNode);
+        //Adding the test og text
+        while(!tempTextFlow.getChildren().isEmpty()){
             textFlow.getChildren().add(tempTextFlow.getChildren().get(0));
         }
         this.changeSize(textFlow);

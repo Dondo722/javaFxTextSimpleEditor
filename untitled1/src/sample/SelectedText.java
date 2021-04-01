@@ -9,26 +9,24 @@ import javafx.scene.text.TextFlow;
 
 
 public class SelectedText  {
-    TextFlow textflow;
-    Node caretNode;
-    Node firstNode = null;
-    Node secondNode = null;
-    boolean selectable = false;
-    public final ObservableList<Node> nodes = FXCollections.observableArrayList();
+    private final TextFlow textflow;
+    private final Node caretNode;
+    private Node firstNode = null;
+    private Node secondNode = null;
+    private final ObservableList<Node> nodes = FXCollections.observableArrayList();
 
     SelectedText(TextFlow textFlow, Caret caret){
         this.textflow = textFlow;
         caretNode = caret.caretNode(textFlow);
     }
     public void setSelectable(boolean selectable){
-        this.selectable = selectable;
         if(!selectable) removeAll();
     }
     public void select(Node node){
         if(!nodes.contains(node) && node != caretNode){
             if (firstNode != null) {
                 secondNode = node;
-                checkOther();
+                addIntermediate();
             }
             else {
                 add(node);
@@ -76,14 +74,14 @@ public class SelectedText  {
         secondNode = null;
     }
 
-    public void addOtherRight(int firstToSecondNodeFlowIndex, int secondNodeFlowIndex){
+    public void addRight(int firstToSecondNodeFlowIndex, int secondNodeFlowIndex){
         //nodes.remove(secondNode);
         for (int i = firstToSecondNodeFlowIndex; i <= secondNodeFlowIndex; i++) {
             add(textflow.getChildren().get(i));
         }
     }
 
-    public void addOtherLeft(int firstNodeFlowIndex, int secondNodeFlowIndex)
+    public void addLeft(int firstNodeFlowIndex, int secondNodeFlowIndex)
     {
         //nodes.remove(secondNode);
         int nodesId = 0;
@@ -93,13 +91,13 @@ public class SelectedText  {
         }
     }
 
-    public void checkOther(){
+    public void addIntermediate(){
         int firstNodeFlowIndex = textflow.getChildren().indexOf(firstNode);
         int secondNodeFlowIndex = textflow.getChildren().indexOf(secondNode);
 
         if (firstNodeFlowIndex < secondNodeFlowIndex ){
             int firstToSecondNodeFlowIndex = textflow.getChildren().indexOf(nodes.get(nodes.size()-1));
-            addOtherRight(firstToSecondNodeFlowIndex,secondNodeFlowIndex);
+            addRight(firstToSecondNodeFlowIndex,secondNodeFlowIndex);
             if(firstNode != nodes.get(0)){
                 Node nodeFirstLeft = nodes.get(nodes.indexOf(firstNode) - 1); // First node that left before firstNode
                 if(nodes.get(0) == nodeFirstLeft) remove(nodeFirstLeft);
@@ -107,7 +105,7 @@ public class SelectedText  {
             }
         }
         else if (firstNodeFlowIndex > secondNodeFlowIndex){
-            addOtherLeft(firstNodeFlowIndex,secondNodeFlowIndex);
+            addLeft(firstNodeFlowIndex,secondNodeFlowIndex);
 
             if (firstNode != nodes.get(nodes.size()-1))
             {
@@ -119,40 +117,33 @@ public class SelectedText  {
         }
     }
 
-
     public boolean isBelongs(Node from,Node node, Node to){
         return (nodes.indexOf(from) <= nodes.indexOf(node) && nodes.indexOf(node) <= nodes.indexOf(to));
     }
-
-    public void chopRight(Node node){
-        remove(node,nodes.get(nodes.size()-1));
-    }
-
-
-    public void chopLeft(Node node){
-        remove(nodes.get(0), node);
-    }
-
 
     public void chopEnds(Node node){
 
         if(node != nodes.get(0) || node != nodes.get(nodes.size()-1)){
             if (isBelongs(nodes.get(0),node,firstNode)){
-                chopLeft(node);
+                remove(nodes.get(0), node);
             }
             else if (isBelongs(firstNode,node,nodes.get(nodes.size()-1))){
-                chopRight(node);
+                remove(node,nodes.get(nodes.size()-1));
             }
         }
     }
     public String toString(){
-        String string = "";
         String tempString;
+        StringBuilder stringBuilder = new StringBuilder();
         for (Node node : nodes) {
             tempString = ((Text) node).getText();
-            string += tempString;
+            stringBuilder.append(tempString);
         }
-        return string;
+        return stringBuilder.toString();
+    }
+
+    public ObservableList<Node> getNodes() {
+        return nodes;
     }
 }
 

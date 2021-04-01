@@ -6,46 +6,49 @@ import javafx.scene.text.Font;
 
 
 public class ChangeMenuBar extends HBox{
-        WorkingArea workingArea;
-        Toolbar toolbar;
-        Menu textMenu = new Menu("Text");
-        Menu fontMenu = new Menu("Font");
-        Menu sizeMenu = new Menu("Size");
-        MenuItem boldMenu = new MenuItem("Bold");
-        MenuItem italicMenu = new MenuItem("Italic");
-        MenuItem underlineMenu = new MenuItem("Underline");
+        private final Toolbar toolbar;
 
-        public ChangeMenuBar(WorkingArea workingArea,Toolbar toolbar){
+
+        public ChangeMenuBar(Toolbar toolbar){
             super();
-            this.workingArea = workingArea;
             this.toolbar = toolbar;
+            int minTextSize = 12;
+            int textChangeOn = 4;
+            int maxTextSize = 45;
+            Menu textMenu = new Menu("Text");
+            Menu fontMenu = new Menu("Font");
+            Menu sizeMenu = new Menu("Size");
+            MenuItem boldMenu = new MenuItem("Bold");
+            MenuItem italicMenu = new MenuItem("Italic");
+            MenuItem underlineMenu = new MenuItem("Underline");
+
 
             for(String string : Font.getFontNames()) {
                 fontMenu.getItems().add(new MenuItem(string));
             }
-            fontMenu.setOnAction(e -> fontChange(e.getTarget()));
-            for(int i = 12; i < 45; i+=4){
+            fontMenu.setOnAction(e -> fontChange(e.getTarget(),fontMenu));
+            for(int i = minTextSize; i < maxTextSize; i+=textChangeOn){
                 sizeMenu.getItems().add(new MenuItem(String.valueOf(i)));
             }
-            sizeMenu.setOnAction(e -> fontSizeChange(e.getTarget()));
-            boldMenu.setOnAction(e-> toolbar.boldBox.fire());
-            italicMenu.setOnAction(e-> toolbar.italicBox.fire());
-            underlineMenu.setOnAction(e-> toolbar.underlineBox.fire());
+            sizeMenu.setOnAction(e -> fontSizeChange(e.getTarget(),sizeMenu));
+            boldMenu.setOnAction(e-> toolbar.getBoldBox().fire());
+            italicMenu.setOnAction(e-> toolbar.getItalicBox().fire());
+            underlineMenu.setOnAction(e-> toolbar.getUnderlineBox().fire());
             textMenu.getItems().addAll(fontMenu,sizeMenu,new SeparatorMenuItem(),boldMenu,italicMenu,underlineMenu);
             MenuBar menuBar = new MenuBar(){ public void requestFocus(){}};
             menuBar.getMenus().addAll(textMenu);
             super.getChildren().addAll(menuBar);
         }
-        public void fontChange(Object object){
+        public void fontChange(Object object,Menu fontMenu){
             for (int i = 0; i < fontMenu.getItems().size() ; i++){
                 if(object.equals(fontMenu.getItems().get(i)))
-                    toolbar.fontBox.setValue(fontMenu.getItems().get(i).getText());
+                    toolbar.getFontBox().setValue(fontMenu.getItems().get(i).getText());
             }
         }
-        public void fontSizeChange(Object object){
+        public void fontSizeChange(Object object,Menu sizeMenu){
             for (int i = 0; i < sizeMenu.getItems().size() ; i++){
                 if(object.equals(sizeMenu.getItems().get(i)))
-                    toolbar.textSizeBox.setValue(sizeMenu.getItems().get(i).getText());
+                    toolbar.getTextSizeBox().setValue(sizeMenu.getItems().get(i).getText());
             }
         }
 }

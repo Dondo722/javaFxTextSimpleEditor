@@ -4,12 +4,12 @@ import javafx.scene.layout.HBox;
 
 
 public class Toolbar extends HBox {
-    WorkingArea workingArea;
-    TextSizeBox textSizeBox;
-    TextFontBox fontBox;
-    TextBoldBox boldBox;
-    TextItalicBox italicBox;
-    UnderlineBox underlineBox;
+    private final WorkingArea workingArea;
+    private final TextFontBox fontBox;
+    private final TextSizeBox textSizeBox;
+    private final TextBoldBox boldBox;
+    private final TextItalicBox italicBox;
+    private final UnderlineBox underlineBox;
     public Toolbar(WorkingArea workingArea){
         super();
         super.setSpacing(8);
@@ -21,15 +21,28 @@ public class Toolbar extends HBox {
         underlineBox = new UnderlineBox(workingArea);
         super.getChildren().addAll(fontBox,textSizeBox,boldBox,italicBox,underlineBox);
     }
-    public Toolbar(WorkingArea workingArea,TextFontBox fontBox,TextSizeBox textSizeBox,TextBoldBox boldBox,TextItalicBox italicBox, UnderlineBox underlineBox){
-        super();
-        super.setSpacing(8);
-        this.workingArea = workingArea;
-        this.textSizeBox = textSizeBox;
-        this.fontBox = fontBox;
-        this.boldBox = boldBox;
-        this.italicBox = italicBox;
-        this.underlineBox = underlineBox;
-        super.getChildren().addAll(this.fontBox,this.textSizeBox,this.boldBox,this.italicBox,this.underlineBox);
+
+    public WorkingArea getWorkingArea() {
+        return workingArea;
+    }
+
+    public TextFontBox getFontBox() {
+        return fontBox;
+    }
+
+    public TextSizeBox getTextSizeBox() {
+        return textSizeBox;
+    }
+
+    public TextBoldBox getBoldBox() {
+        return boldBox;
+    }
+
+    public TextItalicBox getItalicBox() {
+        return italicBox;
+    }
+
+    public UnderlineBox getUnderlineBox() {
+        return underlineBox;
     }
 }
